@@ -4,4 +4,10 @@
     <string name="title_item_detail">Item Detail</string>
 
     <string name="edit_text_hint">Input some to add/delete/modify…</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_share">Share By</string>
 </resources>

@@ -6,14 +6,21 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,31 +43,19 @@ import java.util.zip.Inflater;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class ItemListActivity extends AppCompatActivity {
+public class ItemListActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
      */
     private boolean mTwoPane;
+    private NavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_item_list);
-
-        /*Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setTitle(getTitle());*/
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        setContentView(R.layout.activity_main);
 
         View recyclerView = findViewById(R.id.item_list);
         EditText customEditText = (EditText) findViewById(R.id.custom_edit_text);
@@ -68,7 +63,7 @@ public class ItemListActivity extends AppCompatActivity {
         setupRecyclerView((RecyclerView) recyclerView);
 //        setHeaderAndFooter((RecyclerView) recyclerView);
         setSearchBar(customEditText);
-
+        setNavigationView();
 
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
@@ -98,9 +93,6 @@ public class ItemListActivity extends AppCompatActivity {
         editText.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
-                editText.clearFocus();
                 // et.getCompoundDrawables()得到一个长度为4的数组，分别表示左右上下四张图片
                 Drawable drawable = editText.getCompoundDrawables()[2];
                 //如果右边没有图片，不再处理
@@ -119,11 +111,93 @@ public class ItemListActivity extends AppCompatActivity {
         });
     }
 
+    private void setNavigationView() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
+    }
+
+    /*    实现功能：点击EditText，软键盘出现并且不会隐藏，点击或者触摸EditText以外的其他任何区域，软键盘被隐藏；*/
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        //Finger touch screen event
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            // get current focus,Generally it is EditText
+            View view = getCurrentFocus();
+            if (isShouldHideSoftKeyBoard(view, ev)) {
+                hideSoftKeyBoard(view.getWindowToken());
+            }
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    private boolean isShouldHideSoftKeyBoard(View view, MotionEvent event) {
+        if (view != null && (view instanceof EditText)) {
+            int[] l = {0, 0};
+            view.getLocationInWindow(l);
+            int left = l[0], top = l[1], bottom = top + view.getHeight(), right = left
+                    + view.getWidth();
+            return !(event.getX() > left && event.getX() < right
+                    && event.getY() > top && event.getY() < bottom);
+        }
+        // if the focus is EditText,ignore it;
+        return false;
+    }
+
+    private void hideSoftKeyBoard(IBinder token) {
+        if (token != null) {
+            InputMethodManager im = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            im.hideSoftInputFromWindow(token,
+                    InputMethodManager.HIDE_NOT_ALWAYS);
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_camera) {
+            // Handle the camera action
+        } else if (id == R.id.nav_gallery) {
+
+        } else if (id == R.id.nav_slideshow) {
+
+        } else if (id == R.id.nav_manage) {
+
+        } else if (id == R.id.nav_share) {
+
+        } else if (id == R.id.nav_send) {
+
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
     public class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
-        public static final int TYPE_HEADER = 0;
-        public static final int TYPE_FOOTER = 1;
-        public static final int TYPE_NORMAL = 2;
+        static final int TYPE_HEADER = 0;
+        static final int TYPE_FOOTER = 1;
+        static final int TYPE_NORMAL = 2;
 
         private final List<DummyContent.DummyItem> mValues;
         private View mHeaderView, mFooterView;
@@ -132,7 +206,7 @@ public class ItemListActivity extends AppCompatActivity {
             return mHeaderView;
         }
 
-        public void setHeaderView(View mHeaderView) {
+        void setHeaderView(View mHeaderView) {
             this.mHeaderView = mHeaderView;
             notifyItemInserted(0);
         }
@@ -146,7 +220,7 @@ public class ItemListActivity extends AppCompatActivity {
             notifyItemInserted(getItemCount() - 1);
         }
 
-        public SimpleItemRecyclerViewAdapter(List<DummyContent.DummyItem> items) {
+        SimpleItemRecyclerViewAdapter(List<DummyContent.DummyItem> items) {
             mValues = items;
         }
 
@@ -220,13 +294,13 @@ public class ItemListActivity extends AppCompatActivity {
             }
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            public View mView;
-            public TextView mIdView;
-            public TextView mContentView;
-            public DummyContent.DummyItem mItem;
+        class ViewHolder extends RecyclerView.ViewHolder {
+            View mView;
+            TextView mIdView;
+            TextView mContentView;
+            DummyContent.DummyItem mItem;
 
-            public ViewHolder(View view) {
+            ViewHolder(View view) {
                 super(view);
                 if (view == mHeaderView || view == mFooterView) {
                     return;
