@@ -51,17 +51,18 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
      */
     private boolean mTwoPane;
     private NavigationView navigationView;
+    private RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        View recyclerView = findViewById(R.id.item_list);
+        recyclerView = (RecyclerView) findViewById(R.id.item_list);
         EditText customEditText = (EditText) findViewById(R.id.custom_edit_text);
-        assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
-//        setHeaderAndFooter((RecyclerView) recyclerView);
+
+        setupRecyclerView();
+//        setHeaderAndFooter();
         setSearchBar(customEditText);
         setNavigationView();
 
@@ -74,11 +75,11 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
         }
     }
 
-    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
+    private void setupRecyclerView() {
         recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(DummyContent.ITEMS));
     }
 
-    private void setHeaderAndFooter(@NonNull RecyclerView recyclerView) {
+    private void setHeaderAndFooter() {
 /*        EditText editText = new EditText(this);
         editText.setLayoutParams(
                 new LinearLayoutCompat.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -174,13 +175,13 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
+        if (id == R.id.nav_dict) {
+
+        } else if (id == R.id.nav_account) {
+
         } else if (id == R.id.nav_gallery) {
 
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
+        } else if (id == R.id.nav_music) {
 
         } else if (id == R.id.nav_share) {
 
