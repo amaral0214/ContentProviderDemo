@@ -1,7 +1,10 @@
 package com.example.contentproviderdemo;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -28,11 +31,16 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import com.example.contentproviderdemo.dummy.DummyContent;
+import com.example.dict.content.DictUtils;
+import com.example.dict.content.Words;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.Inflater;
 
 /**
@@ -52,6 +60,13 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
     private boolean mTwoPane;
     private NavigationView navigationView;
     private RecyclerView recyclerView;
+    private FloatingActionButton fab;
+    private EditText customEditText;
+
+    private ContentResolver contentResolver;
+    private ArrayList<Map<String, String>> dictMapList = new ArrayList<>();
+
+    private int currentPos = 0;//current pos in NavigationView
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,12 +74,12 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
         setContentView(R.layout.activity_main);
 
         recyclerView = (RecyclerView) findViewById(R.id.item_list);
-        EditText customEditText = (EditText) findViewById(R.id.custom_edit_text);
+        customEditText = (EditText) findViewById(R.id.custom_edit_text);
 
         setupRecyclerView();
 //        setHeaderAndFooter();
-        setSearchBar(customEditText);
         setNavigationView();
+        setSearchBar(customEditText);
 
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
@@ -73,6 +88,12 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
             // activity should be in two-pane mode.
             mTwoPane = true;
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        contentResolver = getContentResolver();
     }
 
     private void setupRecyclerView() {
@@ -90,6 +111,29 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
         ((SimpleItemRecyclerViewAdapter) recyclerView.getAdapter()).setHeaderView(view);
     }
 
+    private void setNavigationView() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
+    }
+
     private void setSearchBar(final EditText editText) {
         editText.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -105,34 +149,54 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
                 if (event.getX() > editText.getWidth()
                         - editText.getPaddingRight()
                         - drawable.getIntrinsicWidth()) {
-                    editText.setText("");
+                    handleSearchAction();
                 }
                 return false;
             }
         });
     }
 
-    private void setNavigationView() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+    private void handleSearchAction() {
+        switch (currentPos) {
+            case 0:
+                // 获取用户输入
+                String key = customEditText.getText().toString();
+                // 执行查询
+                Cursor cursor = contentResolver.query(
+                        Words.Word.DICT_CONTENT_URI, null,
+                        "word like ? or detail like ?", new String[]{
+                                "%" + key + "%", "%" + key + "%"}, null);
+                if (cursor == null) {
+                    // 获取用户输入
+                    String word = null;
+                    String detail = null;
+                    // 插入生词记录
+                    ContentValues values = new ContentValues();
+                    values.put(Words.Word.WORD, word);
+                    values.put(Words.Word.DETAIL, detail);
+                    contentResolver.insert(
+                            Words.Word.DICT_CONTENT_URI, values);
+                    // 显示提示信息
+                    Toast.makeText(ItemListActivity.this, "添加生词成功！"
+                            , Toast.LENGTH_SHORT).show();
+                } else {
+                    ArrayList<Map<String, String>> tempDictMapList = DictUtils.converCursorToList(cursor);
+                    dictMapList.addAll(tempDictMapList);
+                }
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
+            case 5:
+                break;
+            default:
+                break;
+        }
     }
 
     /*    实现功能：点击EditText，软键盘出现并且不会隐藏，点击或者触摸EditText以外的其他任何区域，软键盘被隐藏；*/
@@ -176,17 +240,25 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
         int id = item.getItemId();
 
         if (id == R.id.nav_dict) {
-
+            currentPos = 0;
+            fab.setVisibility(View.GONE);
         } else if (id == R.id.nav_account) {
-
+            currentPos = 1;
+            fab.setVisibility(View.GONE);
         } else if (id == R.id.nav_gallery) {
-
+            currentPos = 2;
+            fab.setVisibility(View.VISIBLE);
+            fab.setImageResource(R.drawable.ic_play_btn);
         } else if (id == R.id.nav_music) {
-
+            currentPos = 3;
+            fab.setVisibility(View.VISIBLE);
+            fab.setImageResource(R.drawable.ic_play_btn);
         } else if (id == R.id.nav_share) {
-
+            currentPos = 4;
+            fab.setVisibility(View.GONE);
         } else if (id == R.id.nav_send) {
-
+            currentPos = 5;
+            fab.setVisibility(View.GONE);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
