@@ -27,6 +27,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ItemListActivity" />
         </activity>
+
+        <provider
+            android:name="com.example.dict.DictProvider"
+            android:authorities="com.example.dict.dictprovider"></provider>
     </application>
 
 </manifest>

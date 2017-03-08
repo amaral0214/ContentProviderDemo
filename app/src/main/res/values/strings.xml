@@ -10,4 +10,10 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_share">Share By</string>
+    <string name="dialog_list_title">Search Result</string>
+    <string name="edit_dialog">Edit</string>
+    <string name="cancel_dialog">Cancel</string>
+    <string name="delete_dialog">Delete</string>
+    <string name="dialog_add_title">Add item include key=%s</string>
+    <string name="add_dialog">Add</string>
 </resources>

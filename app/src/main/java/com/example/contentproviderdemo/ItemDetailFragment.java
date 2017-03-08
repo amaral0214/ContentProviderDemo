@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.contentproviderdemo.dummy.DummyContent;
+import com.example.contentproviderdemo.dummy.DummyItem;
 
 /**
  * A fragment representing a single Item detail screen.
@@ -27,7 +28,7 @@ public class ItemDetailFragment extends Fragment {
     /**
      * The dummy content this fragment is presenting.
      */
-    private DummyContent.DummyItem mItem;
+    private DummyItem mItem;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the

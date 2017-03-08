@@ -7,7 +7,7 @@ public final class Words
 {
 	// 定义该ContentProvider的Authorities
 	public static final String AUTHORITY
-			= "org.crazyit.providers.dictprovider";
+			= "com.example.dict.dictprovider";
 	// 定义一个静态内部类，定义该ContentProvider所包含的数据列的列名
 	public static final class Word implements BaseColumns
 	{
