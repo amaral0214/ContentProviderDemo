@@ -16,7 +16,7 @@ public class MultiModeCallback implements AbsListView.MultiChoiceModeListener {
     private SearchResultAdapter mAdapter;
     private AlertDialog dialog;
 
-    public MultiModeCallback(AlertDialog dialog, SearchResultAdapter mAdapter) {
+    public MultiModeCallback(SearchResultAdapter mAdapter, AlertDialog dialog) {
         this.mAdapter = mAdapter;
         this.dialog = dialog;
     }
@@ -47,12 +47,10 @@ public class MultiModeCallback implements AbsListView.MultiChoiceModeListener {
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
         mAdapter.setEditMode(true);
-        mAdapter.notifyDataSetChanged();
 
-        if (dialog != null) {
-            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
-            dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(true);
-        }
+        //if return false, actionmode will invoke soon. Besides, onItemCheckedStateChanged doesn't work. I have added it's function content to adapter.
+        //if run with action mode, remove below line(notifyDataSetChanged()) and return true
+        mAdapter.notifyDataSetChanged();
         return false;
     }
 

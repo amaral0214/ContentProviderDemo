@@ -26,6 +26,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -306,7 +307,6 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_list_layout, null);
         ListView listView = (ListView) view.findViewById(R.id.listView);
-        final SearchResultAdapter searchResultAdapter = new SearchResultAdapter(this, itemList);
         builder.setTitle(getString(R.string.dialog_list_title)).setView(view)
                 .setPositiveButton(getString(R.string.edit_dialog), new DialogInterface.OnClickListener() {
                     @Override
@@ -323,14 +323,13 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
                 .setNeutralButton(getString(R.string.cancel_dialog), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if (searchResultAdapter.getEditMode()) {//edit mode
-//                            keepDialogOpen((AlertDialog) dialog);
-                        }
+//                        keepDialogOpen((AlertDialog) dialog);
                         dialog.dismiss();
                     }
                 });
         AlertDialog alertDialog = builder.create();
-        MultiModeCallback mCallback = new MultiModeCallback(alertDialog, searchResultAdapter);
+        SearchResultAdapter searchResultAdapter = new SearchResultAdapter(this, itemList, alertDialog);
+        MultiModeCallback mCallback = new MultiModeCallback(searchResultAdapter, alertDialog);
         listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         listView.setMultiChoiceModeListener(mCallback);
         listView.setAdapter(searchResultAdapter);

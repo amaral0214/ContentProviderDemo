@@ -1,6 +1,8 @@
 package com.example.contentproviderdemo;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,10 +24,12 @@ public class SearchResultAdapter extends BaseAdapter {
     private List<? extends DummyItem> items;
     private boolean isEditMode;
     private List<String> selectItems;
+    private AlertDialog dialog;
 
-    SearchResultAdapter(Context context, List<? extends DummyItem> items) {
+    SearchResultAdapter(Context context, List<? extends DummyItem> items, AlertDialog dialog) {
         this.context = context;
         this.items = items;
+        this.dialog = dialog;
         isEditMode = false;
         selectItems = new ArrayList<>();
     }
@@ -63,8 +67,20 @@ public class SearchResultAdapter extends BaseAdapter {
                 public void onClick(View v) {
                     if (viewHolder.checkBox.isChecked()) {
                         viewHolder.checkBox.setChecked(false);
+                        removeSelectedItem(position);
                     } else {
                         viewHolder.checkBox.setChecked(true);
+                        addSelectedItem(position);
+                    }
+                    if (getSelectedItemsCount() > 0) {
+                        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(true);//delete
+                    } else {
+                        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(false);//delete
+                    }
+                    if (getSelectedItemsCount() == 1) {
+                        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);//edit
+                    } else {
+                        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);//edit
                     }
                 }
             });
