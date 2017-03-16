@@ -2,6 +2,7 @@
     <string name="app_name">ContentProviderDemo</string>
     <string name="title_item_list">Item List</string>
     <string name="title_item_detail">Item Detail</string>
+    <string name="title_item_send">Send</string>
 
     <string name="edit_text_hint">Input some to add/delete/modify…</string>
 

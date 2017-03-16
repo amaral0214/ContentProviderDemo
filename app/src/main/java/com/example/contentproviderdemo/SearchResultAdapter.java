@@ -118,6 +118,10 @@ public class SearchResultAdapter extends BaseAdapter {
         return selectItems.size();
     }
 
+    public String getId(int position) {
+        return getItem(position).id;
+    }
+
     static class ViewHolder {
         LinearLayout ll;
         CheckBox checkBox;

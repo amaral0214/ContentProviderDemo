@@ -20,12 +20,14 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -49,7 +51,7 @@ import java.util.List;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class ItemListActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SimpleItemRecyclerViewAdapter.PageDirection {
+public class ItemListActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, PageDirection {
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -120,8 +122,7 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
                 itemList = DummyContent.ITEMS;
                 break;
         }
-        simpleItemRecyclerViewAdapter = new SimpleItemRecyclerViewAdapter(itemList);
-        simpleItemRecyclerViewAdapter.setPageDirection(this);
+        simpleItemRecyclerViewAdapter = new SimpleItemRecyclerViewAdapter(this, itemList);
         recyclerView.setAdapter(simpleItemRecyclerViewAdapter);
         if (cursor != null) {
             cursor.close();
@@ -150,8 +151,9 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                /*Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();*/
+                startActivity(new Intent(ItemListActivity.this, SendActivity.class));
             }
         });
     }
@@ -213,7 +215,6 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
         if (cursor != null) {
             cursor.close();
         }
-        customEditText.setText(null);
     }
 
     /*    实现功能：点击EditText，软键盘出现并且不会隐藏，点击或者触摸EditText以外的其他任何区域，软键盘被隐藏；*/
@@ -276,6 +277,7 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
         } else if (id == R.id.nav_send) {
             currentPos = 5;
             fab.setVisibility(View.GONE);
+            startActivity(new Intent(this, SendActivity.class));
         }
         setupRecyclerView();
 
@@ -285,10 +287,10 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
     }
 
     @Override
-    public void toItemDetailPage(SimpleItemRecyclerViewAdapter.ViewHolder holder) {
+    public void toItemDetailPage(String id) {
         if (mTwoPane) {
             Bundle arguments = new Bundle();
-            arguments.putString(ItemDetailFragment.ARG_ITEM_ID, holder.mItem.id);
+            arguments.putString(ItemDetailFragment.ARG_ITEM_ID, id);
             ItemDetailFragment fragment = new ItemDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -296,7 +298,7 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
                     .commit();
         } else {
             Intent intent = new Intent(this, ItemDetailActivity.class);
-            intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, holder.mItem.id);
+            intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, id);
 
 //                        context.startActivity(intent);
             Utils.startActivityUseAnimation(this, intent, -1, Utils.ANIMATION_TYPE_LEFT_RIGHT);
@@ -333,6 +335,12 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
         listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         listView.setMultiChoiceModeListener(mCallback);
         listView.setAdapter(searchResultAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                toItemDetailPage(((SearchResultAdapter) ((ListView) parent).getAdapter()).getId(position));
+            }
+        });
         alertDialog.show();
 
         alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);

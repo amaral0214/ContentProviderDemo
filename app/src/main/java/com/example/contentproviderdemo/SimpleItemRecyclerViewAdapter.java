@@ -23,9 +23,9 @@ public class SimpleItemRecyclerViewAdapter
     static final int TYPE_FOOTER = 1;
     static final int TYPE_NORMAL = 2;
 
+    private Context context;
     private final List<DummyItem> mValues;
     private View mHeaderView, mFooterView;
-    private PageDirection pageDirection = null;
 
     public View getHeaderView() {
         return mHeaderView;
@@ -45,7 +45,8 @@ public class SimpleItemRecyclerViewAdapter
         notifyItemInserted(getItemCount() - 1);
     }
 
-    SimpleItemRecyclerViewAdapter(List<DummyItem> items) {
+    SimpleItemRecyclerViewAdapter(Context context, List<DummyItem> items) {
+        this.context = context;
         mValues = items;
     }
 
@@ -87,7 +88,7 @@ public class SimpleItemRecyclerViewAdapter
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    pageDirection.toItemDetailPage(holder);
+                    ((PageDirection) context).toItemDetailPage(holder.mItem.id);
                 }
             });
         }
@@ -102,10 +103,6 @@ public class SimpleItemRecyclerViewAdapter
         } else {
             return mValues.size() + 2;
         }
-    }
-
-    public void setPageDirection(PageDirection pageDirection) {
-        this.pageDirection = pageDirection;
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -128,9 +125,5 @@ public class SimpleItemRecyclerViewAdapter
         public String toString() {
             return super.toString() + " '" + mContentView.getText() + "'";
         }
-    }
-
-    interface PageDirection {
-        void toItemDetailPage(ViewHolder holder);
     }
 }

@@ -23,4 +23,24 @@
         <item name="android:background">@drawable/selector_edit_text_bg</item>
     </style>
 
+    <style name="AppTheme.Animation.RightToLeft" parent="AppTheme.NoActionBar">
+        <item name="android:activityOpenEnterAnimation">@anim/from_right_in</item>
+        <item name="android:activityCloseEnterAnimation">@anim/to_left_out</item>
+        <item name="android:activityOpenExitAnimation">@anim/from_left_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/to_right_out</item>
+    </style>
+
+    <style name="Animation.DownToUp" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/from_down_in</item>
+        <item name="android:activityCloseEnterAnimation">@anim/from_up_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/to_up_out</item>
+        <item name="android:activityCloseExitAnimation">@anim/to_down_out</item>
+    </style>
+
+    <style name="AppTheme.Animation.DownToUp" parent="AppTheme">
+        <item name="android:windowAnimationStyle">@style/Animation.DownToUp</item>
+        <item name="android:windowEnterAnimation">@style/Animation.DownToUp</item>
+        <item name="android:windowExitAnimation">@style/Animation.DownToUp</item>
+    </style>
+
 </resources>

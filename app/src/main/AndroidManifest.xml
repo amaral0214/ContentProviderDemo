@@ -28,6 +28,12 @@
                 android:value=".ItemListActivity" />
         </activity>
 
+        <activity
+            android:name=".SendActivity"
+            android:label="@string/title_item_send"
+            android:theme="@style/AppTheme.Animation.DownToUp">
+        </activity>
+
         <provider
             android:name="com.example.dict.DictProvider"
             android:authorities="com.example.dict.dictprovider"></provider>
