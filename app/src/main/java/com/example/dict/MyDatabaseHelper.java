@@ -7,9 +7,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class MyDatabaseHelper extends SQLiteOpenHelper
 {
 	final String CREATE_TABLE_SQL =
-			"create table dict(_id integer primary " +
-					"key autoincrement , word , detail)";
-	public MyDatabaseHelper(Context context, String name, int version)
+			"create table dict(_id integer primary key autoincrement, word char(20), detail char(100))";
+	MyDatabaseHelper(Context context, String name, int version)
 	{
 		super(context, name, null, version);
 	}

@@ -2,12 +2,14 @@ package com.example.contentproviderdemo;
 
 import android.app.AlertDialog;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -20,24 +22,23 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.util.Log;
+import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
-import com.example.contentproviderdemo.dummy.DummyContent;
 import com.example.contentproviderdemo.dummy.DummyItem;
-import com.example.dict.DictUtils;
-import com.example.dict.content.DictItem;
 import com.example.dict.content.Words;
 
 import java.util.ArrayList;
@@ -64,10 +65,11 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
     private DrawerLayout drawer;
 
     private ContentResolver contentResolver;
-    private List<DummyItem> itemList = new ArrayList<>();
-    private SimpleItemRecyclerViewAdapter simpleItemRecyclerViewAdapter;
+    private List<com.example.contentproviderdemo.dummy.DummyItem> listItems = new ArrayList<>();
+    private SimpleItemRecyclerViewAdapter simpleItemRecyclerViewAdapter = null;
 
     private int currentPos = 0;//current pos in NavigationView
+    private int currentItemId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,35 +100,24 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
 
     }
 
-    private void setupRecyclerView() {
-        Cursor cursor = null;
-        itemList.clear();
-        switch (currentPos) {
-            case 0:
-                cursor = contentResolver.query(Words.Word.DICT_CONTENT_URI, null, null, null, null);
-                if (cursor != null && cursor.moveToNext()) {
-                    itemList.addAll(DictUtils.convertCursorToList(cursor));
-                }
-                break;
-            case 1:
-                break;
-            case 2:
-                break;
-            case 3:
-                break;
-            case 4:
-                break;
-            case 5:
-                break;
-            default:
-                itemList = DummyContent.ITEMS;
-                break;
+    private SimpleItemRecyclerViewAdapter getSimpleItemRecyclerViewAdapter() {
+        if (simpleItemRecyclerViewAdapter == null) {
+            simpleItemRecyclerViewAdapter = new SimpleItemRecyclerViewAdapter(this, listItems);
         }
-        simpleItemRecyclerViewAdapter = new SimpleItemRecyclerViewAdapter(this, itemList);
-        recyclerView.setAdapter(simpleItemRecyclerViewAdapter);
-        if (cursor != null) {
+        return simpleItemRecyclerViewAdapter;
+    }
+
+    private void setupRecyclerView() {
+        listItems.clear();
+        Cursor cursor = contentResolver.query(Words.Word.DICT_CONTENT_URI, null, null, null, null);
+        if (cursor != null && cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                DummyItem dictItem = new DummyItem(cursor.getInt(0), cursor.getString(1), cursor.getString(2));
+                listItems.add(dictItem);
+            }
             cursor.close();
         }
+        recyclerView.setAdapter(getSimpleItemRecyclerViewAdapter());
     }
 
     private void setHeaderAndFooter() {
@@ -151,9 +142,8 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /*Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
-                startActivity(new Intent(ItemListActivity.this, SendActivity.class));
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
             }
         });
     }
@@ -178,42 +168,44 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
                 return false;
             }
         });
+        editText.setOnEditorActionListener(new EditText.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_SEARCH)) {
+                    handleSearchAction();
+                    return true;
+                }
+                return false;
+            }
+        });
     }
 
     private void handleSearchAction() {
-        Cursor cursor = null;
-        switch (currentPos) {
-            case 0:
-                // 获取用户输入
-                String key = customEditText.getText().toString();
-                // 执行查询
-                cursor = contentResolver.query(
-                        Words.Word.DICT_CONTENT_URI, null,
-                        "word like ? or detail like ?", new String[]{
-                                "%" + key + "%", "%" + key + "%"}, null);
-                if (key.length() > 0 && cursor != null && cursor.moveToNext()) {
-                    List<DictItem> tempDictList = DictUtils.convertCursorToList(cursor);
-                    showListDialog(tempDictList);
+        // 获取用户输入
+        String key = customEditText.getText().toString();
+        customEditText.setText(null);
+        recyclerView.requestFocus();
+        hideSoftKeyBoard(recyclerView.getWindowToken());
+        if (!TextUtils.isEmpty(key)) {
+            Cursor cursor = contentResolver.query(
+                    Words.Word.DICT_CONTENT_URI, null,
+                    "word like ?", new String[]{
+                            "%" + key + "%"}, null);
+            if (cursor != null) {
+                if (cursor.getCount() > 0) {
+                    List<com.example.contentproviderdemo.dummy.DummyItem> searchOutItems = new ArrayList<>();
+                    while (cursor.moveToNext()) {
+                        DummyItem dictItem = new DummyItem(cursor.getInt(0), cursor.getString(1), cursor.getString(2));
+                        searchOutItems.add(dictItem);
+                    }
+                    showDictListDialog(searchOutItems);
                 } else {
-                    showAddDialog(key);
+                    showDictAddDialog(key);
                 }
-
-                break;
-            case 1:
-                break;
-            case 2:
-                break;
-            case 3:
-                break;
-            case 4:
-                break;
-            case 5:
-                break;
-            default:
-                break;
-        }
-        if (cursor != null) {
-            cursor.close();
+                cursor.close();
+            }
+        } else {
+            showDictAddDialog(key);
         }
     }
 
@@ -287,10 +279,10 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
     }
 
     @Override
-    public void toItemDetailPage(String id) {
+    public void toItemDetailPage(int id) {
         if (mTwoPane) {
             Bundle arguments = new Bundle();
-            arguments.putString(ItemDetailFragment.ARG_ITEM_ID, id);
+            arguments.putInt(ItemDetailFragment.ARG_ITEM_ID, id);
             ItemDetailFragment fragment = new ItemDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -299,39 +291,70 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
         } else {
             Intent intent = new Intent(this, ItemDetailActivity.class);
             intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, id);
-
-//                        context.startActivity(intent);
-            Utils.startActivityUseAnimation(this, intent, -1, Utils.ANIMATION_TYPE_LEFT_RIGHT);
+            startActivity(intent);
         }
     }
 
-    private void showListDialog(List<? extends DummyItem> itemList) {
+    private void showDictListDialog(final List<com.example.contentproviderdemo.dummy.DummyItem> searchOutItems) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_list_layout, null);
-        ListView listView = (ListView) view.findViewById(R.id.listView);
+        final ListView listView = (ListView) view.findViewById(R.id.listView);
         builder.setTitle(getString(R.string.dialog_list_title)).setView(view)
                 .setPositiveButton(getString(R.string.edit_dialog), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        com.example.contentproviderdemo.dummy.DummyItem dl = ((SearchResultAdapter) listView.getAdapter()).getSelectedItems().get(0);
+                        showDictUpdateDialog(dl);
                         dialog.dismiss();
                     }
                 })
                 .setNegativeButton(getString(R.string.delete_dialog), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
+                        List<com.example.contentproviderdemo.dummy.DummyItem> deleteList = ((SearchResultAdapter) listView.getAdapter()).getSelectedItems();
+                        int count = 0;
+                        for (com.example.contentproviderdemo.dummy.DummyItem dl : deleteList) {
+                            if (dl.id == currentItemId) {
+                                currentItemId = -1;
+                            }
+                            int c = contentResolver.delete(ContentUris.withAppendedId(Words.Word.WORD_CONTENT_URI, dl.id), null, null);
+                            if (c > 0) {
+                                count += c;
+                            }
+                        }
+                        if (count > 0) {
+                            listItems.clear();
+                            Cursor cursor = contentResolver.query(Words.Word.DICT_CONTENT_URI, null, null, null, null);
+                            if (cursor != null && cursor.getCount() > 0) {
+                                while (cursor.moveToNext()) {
+                                    DummyItem dictItem = new DummyItem(cursor.getInt(0), cursor.getString(1), cursor.getString(2));
+                                    listItems.add(dictItem);
+                                }
+                                cursor.close();
+                            }
+                            dialog.dismiss();
+                            getSimpleItemRecyclerViewAdapter().notifyDataSetChanged();
+                            if (getSimpleItemRecyclerViewAdapter().getItemCount() <= 0) {
+                                currentItemId = 0;
+                            } else if (currentItemId == -1) {
+                                currentItemId = (int) getSimpleItemRecyclerViewAdapter().getItemId(0);
+                            }
+                            if (mTwoPane) {
+                                toItemDetailPage(currentItemId);
+                            }
+                        }
+
                     }
                 })
                 .setNeutralButton(getString(R.string.cancel_dialog), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-//                        keepDialogOpen((AlertDialog) dialog);
                         dialog.dismiss();
                     }
                 });
         AlertDialog alertDialog = builder.create();
-        SearchResultAdapter searchResultAdapter = new SearchResultAdapter(this, itemList, alertDialog);
-        MultiModeCallback mCallback = new MultiModeCallback(searchResultAdapter, alertDialog);
+        SearchResultAdapter searchResultAdapter = new SearchResultAdapter(this, searchOutItems, alertDialog);
+        SearchResultMultiChoiceMode mCallback = new SearchResultMultiChoiceMode(searchResultAdapter, alertDialog);
         listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         listView.setMultiChoiceModeListener(mCallback);
         listView.setAdapter(searchResultAdapter);
@@ -347,7 +370,64 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
         alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(false);
     }
 
-    private void showAddDialog(String key) {
+    private void showDictUpdateDialog(final com.example.contentproviderdemo.dummy.DummyItem dl) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View v = LayoutInflater.from(this).inflate(R.layout.dialog_add_layout, null);
+        final EditText content_et = (EditText) v.findViewById(R.id.content);
+        final EditText details_et = (EditText) v.findViewById(R.id.details);
+        content_et.setText(dl.content);
+        details_et.setText(dl.details);
+        builder.setView(v);
+
+        builder.setTitle(getString(R.string.dialog_update_title))
+                .setPositiveButton(getString(R.string.update_dialog), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String content = content_et.getText().toString();
+                        String details = details_et.getText().toString();
+                        if (TextUtils.isEmpty(content) || TextUtils.isEmpty(details)) {
+                            keepDialogOpen(dialog, true);
+                            Toast.makeText(ItemListActivity.this, "请补充完整！", Toast.LENGTH_SHORT).show();
+                        } else {
+                            keepDialogOpen(dialog, false);
+                            if (!content.equals(dl.content) || !details.equals(dl.details)) {
+                                ContentValues values = new ContentValues();
+                                values.put(Words.Word.WORD, content);
+                                values.put(Words.Word.DETAIL, details);
+                                contentResolver.update(ContentUris.withAppendedId(Words.Word.WORD_CONTENT_URI, dl.id), values, null, null);
+
+                                listItems.clear();
+                                Cursor cursor = contentResolver.query(Words.Word.DICT_CONTENT_URI, null, null, null, null);
+                                if (cursor != null && cursor.getCount() > 0) {
+                                    while (cursor.moveToNext()) {
+                                        DummyItem dictItem = new DummyItem(cursor.getInt(0), cursor.getString(1), cursor.getString(2));
+                                        listItems.add(dictItem);
+                                    }
+                                    cursor.close();
+                                }
+                                getSimpleItemRecyclerViewAdapter().notifyDataSetChanged();
+                                currentItemId = dl.id;
+                                if (mTwoPane) {
+                                    toItemDetailPage(currentItemId);
+                                }
+                                Toast.makeText(ItemListActivity.this, "更新生词成功！", Toast.LENGTH_SHORT).show();
+                            }
+                            recyclerView.requestFocus();
+                            hideSoftKeyBoard(recyclerView.getWindowToken());
+                            dialog.dismiss();
+                        }
+                    }
+                })
+                .setNegativeButton(getString(R.string.cancel_dialog), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).create();
+        builder.show();
+    }
+
+    private void showDictAddDialog(String key) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_add_layout, null);
         final EditText content_et = (EditText) v.findViewById(R.id.content);
@@ -364,36 +444,33 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
                         if (content.length() == 0 && content_et.getHint().length() > 0) {
                             content = content_et.getHint().toString();
                         }
-                        switch (currentPos) {
-                            case 0:
-                                // 插入生词记录
-                                ContentValues values = new ContentValues();
-                                values.put(Words.Word.WORD, content);
-                                values.put(Words.Word.DETAIL, details);
-                                contentResolver.insert(Words.Word.DICT_CONTENT_URI, values);
-                                DictItem dictItem = new DictItem(String.valueOf(itemList.size()), content, details);
-                                itemList.add(dictItem);
-                                if (simpleItemRecyclerViewAdapter != null) {
-                                    simpleItemRecyclerViewAdapter.notifyDataSetChanged();
+                        if (TextUtils.isEmpty(content) || TextUtils.isEmpty(details)) {
+                            keepDialogOpen(dialog, true);
+                            Toast.makeText(ItemListActivity.this, "请补充完整！", Toast.LENGTH_SHORT).show();
+                        } else {
+                            keepDialogOpen(dialog, false);
+                            // 插入生词记录
+                            ContentValues values = new ContentValues();
+                            values.put(Words.Word.WORD, content);
+                            values.put(Words.Word.DETAIL, details);
+                            Uri uri = contentResolver.insert(Words.Word.DICT_CONTENT_URI, values);
+                            if (uri != null) {
+                                long id = ContentUris.parseId(uri);
+                                if (id >= 0) {
+                                    DummyItem dictItem = new DummyItem((int) id, content, details);
+                                    listItems.add(dictItem);
+                                    getSimpleItemRecyclerViewAdapter().notifyDataSetChanged();
+                                    currentItemId = (int) id;
+                                    if (mTwoPane) {
+                                        toItemDetailPage(currentItemId);
+                                    }
+                                    Toast.makeText(ItemListActivity.this, "添加生词成功！", Toast.LENGTH_SHORT).show();
                                 }
-                                Toast.makeText(ItemListActivity.this, "添加生词成功！", Toast.LENGTH_SHORT).show();
-                                break;
-                            case 1:
-                                break;
-                            case 2:
-                                break;
-                            case 3:
-                                break;
-                            case 4:
-                                break;
-                            case 5:
-                                break;
-                            default:
-                                itemList = DummyContent.ITEMS;
-                                break;
+                            }
+                            recyclerView.requestFocus();
+                            hideSoftKeyBoard(recyclerView.getWindowToken());
+                            dialog.dismiss();
                         }
-
-                        dialog.dismiss();
                     }
                 })
                 .setNegativeButton(getString(R.string.cancel_dialog), new DialogInterface.OnClickListener() {
@@ -406,11 +483,11 @@ public class ItemListActivity extends AppCompatActivity implements NavigationVie
     }
 
     //保持dialog不关闭的方法
-    private void keepDialogOpen(AlertDialog dialog) {
+    private void keepDialogOpen(DialogInterface dialog, boolean b) {
         try {
             java.lang.reflect.Field field = dialog.getClass().getSuperclass().getDeclaredField("mShowing");
             field.setAccessible(true);
-            field.set(dialog, false);
+            field.set(dialog, !b);
         } catch (Exception e) {
             e.printStackTrace();
         }

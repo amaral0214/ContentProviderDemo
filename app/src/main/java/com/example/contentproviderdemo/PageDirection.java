@@ -5,5 +5,5 @@ package com.example.contentproviderdemo;
  */
 
 interface PageDirection {
-    void toItemDetailPage(String id);
+    void toItemDetailPage(int id);
 }

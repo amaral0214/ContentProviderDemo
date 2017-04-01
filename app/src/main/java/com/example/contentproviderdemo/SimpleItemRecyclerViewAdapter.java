@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.example.contentproviderdemo.dummy.DummyItem;
@@ -24,8 +25,11 @@ public class SimpleItemRecyclerViewAdapter
     static final int TYPE_NORMAL = 2;
 
     private Context context;
-    private final List<DummyItem> mValues;
+    private List<DummyItem> mValues;
     private View mHeaderView, mFooterView;
+    private boolean isEditMode;
+    private List<DummyItem> selectItems;
+
 
     public View getHeaderView() {
         return mHeaderView;
@@ -73,7 +77,7 @@ public class SimpleItemRecyclerViewAdapter
         if (mFooterView != null && viewType == TYPE_FOOTER) {
             return new ViewHolder(mFooterView);
         }
-        View view = LayoutInflater.from(parent.getContext())
+        View view = LayoutInflater.from(context)
                 .inflate(R.layout.item_list_content, parent, false);
         return new ViewHolder(view);
     }
@@ -81,9 +85,13 @@ public class SimpleItemRecyclerViewAdapter
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         if (getItemViewType(position) == TYPE_NORMAL) {
-            holder.mItem = mValues.get(position);
-            holder.mIdView.setText(mValues.get(position).id);
-            holder.mContentView.setText(mValues.get(position).content);
+            int valuePos = position;
+            if (mHeaderView != null) {
+                valuePos--;
+            }
+            holder.mItem = mValues.get(valuePos);
+            holder.mIdView.setText(String.valueOf(valuePos + 1));
+            holder.mContentView.setText(mValues.get(valuePos).content);
 
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -91,6 +99,12 @@ public class SimpleItemRecyclerViewAdapter
                     ((PageDirection) context).toItemDetailPage(holder.mItem.id);
                 }
             });
+
+            if (isEditMode) {
+                holder.checkBox.setVisibility(View.VISIBLE);
+            } else {
+                holder.checkBox.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -105,10 +119,39 @@ public class SimpleItemRecyclerViewAdapter
         }
     }
 
+    public boolean getEditMode() {
+        return isEditMode;
+    }
+
+    public void setEditMode(boolean isEditMode) {
+        this.isEditMode = isEditMode;
+    }
+
+    public void addSelectedItem(int position) {
+        selectItems.add(mValues.get(position));
+    }
+
+    public void removeSelectedItem(int position) {
+        selectItems.remove(mValues.get(position).id);
+    }
+
+    public void clearSelectedItems() {
+        selectItems.clear();
+    }
+
+    public List<DummyItem> getSelectedItems() {
+        return selectItems;
+    }
+
+    public int getSelectedItemsCount() {
+        return selectItems.size();
+    }
+
     class ViewHolder extends RecyclerView.ViewHolder {
         View mView;
         TextView mIdView;
         TextView mContentView;
+        CheckBox checkBox;
         DummyItem mItem;
 
         ViewHolder(View view) {
@@ -119,6 +162,7 @@ public class SimpleItemRecyclerViewAdapter
             mView = view;
             mIdView = (TextView) view.findViewById(R.id.id);
             mContentView = (TextView) view.findViewById(R.id.content);
+            checkBox = (CheckBox) view.findViewById(R.id.checkbox);
         }
 
         @Override

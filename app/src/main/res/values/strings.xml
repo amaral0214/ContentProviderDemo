@@ -3,6 +3,7 @@
     <string name="title_item_list">Item List</string>
     <string name="title_item_detail">Item Detail</string>
     <string name="title_item_send">Send</string>
+    <string name="title_item_base">Base</string>
 
     <string name="edit_text_hint">Input some to add/delete/modify…</string>
 
@@ -17,4 +18,6 @@
     <string name="delete_dialog">Delete</string>
     <string name="dialog_add_title">Add item include key=%s</string>
     <string name="add_dialog">Add</string>
+    <string name="dialog_update_title">Update item</string>
+    <string name="update_dialog">Update</string>
 </resources>

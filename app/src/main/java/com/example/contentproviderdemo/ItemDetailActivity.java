@@ -54,8 +54,8 @@ public class ItemDetailActivity extends AppCompatActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(ItemDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(ItemDetailFragment.ARG_ITEM_ID));
+            arguments.putInt(ItemDetailFragment.ARG_ITEM_ID,
+                    getIntent().getIntExtra(ItemDetailFragment.ARG_ITEM_ID, 0));
             ItemDetailFragment fragment = new ItemDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -75,19 +75,8 @@ public class ItemDetailActivity extends AppCompatActivity {
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
             navigateUpTo(new Intent(this, ItemListActivity.class));
-            overridePendingTransition(R.anim.from_left_in, R.anim.to_right_out);
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            finish();
-            overridePendingTransition(R.anim.from_left_in, R.anim.to_right_out);
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
     }
 }

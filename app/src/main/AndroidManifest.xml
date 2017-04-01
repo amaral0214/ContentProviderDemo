@@ -7,11 +7,11 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme.Animation.RightToLeft">
         <activity
             android:name=".ItemListActivity"
             android:label="@string/title_item_list"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar.Animation.RightToLeft">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -22,21 +22,20 @@
             android:name=".ItemDetailActivity"
             android:label="@string/title_item_detail"
             android:parentActivityName=".ItemListActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ItemListActivity" />
+            android:theme="@style/AppTheme.NoActionBar.Animation.RightToLeft">
+
         </activity>
 
         <activity
             android:name=".SendActivity"
-            android:label="@string/title_item_send"
-            android:theme="@style/AppTheme.Animation.DownToUp">
-        </activity>
+            android:label="@string/title_item_send" />
+        <activity
+            android:name="com.example.animation.BaseActivity"
+            android:label="@string/title_item_base" />
 
         <provider
             android:name="com.example.dict.DictProvider"
-            android:authorities="com.example.dict.dictprovider"></provider>
+            android:authorities="com.example.dict.dictprovider" />
     </application>
 
 </manifest>

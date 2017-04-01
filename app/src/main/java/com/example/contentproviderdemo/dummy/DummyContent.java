@@ -21,9 +21,9 @@ public class DummyContent {
     /**
      * A map of sample (dummy) items, by ID.
      */
-    public static final Map<String, DummyItem> ITEM_MAP = new HashMap<String, DummyItem>();
+    public static final Map<Integer, DummyItem> ITEM_MAP = new HashMap<>();
 
-    private static final int COUNT = 100;
+    public static final int COUNT = 100;
 
     static {
         // Add some sample items.
@@ -38,7 +38,7 @@ public class DummyContent {
     }
 
     private static DummyItem createDummyItem(int position) {
-        return new DummyItem(String.valueOf(position), "Item " + position, makeDetails(position));
+        return new DummyItem(position, "Item " + position, makeDetails(position));
     }
 
     private static String makeDetails(int position) {

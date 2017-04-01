@@ -1,6 +1,8 @@
 package com.example.contentproviderdemo;
 
 import android.app.Activity;
+import android.content.ContentUris;
+import android.database.Cursor;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -11,6 +13,7 @@ import android.widget.TextView;
 
 import com.example.contentproviderdemo.dummy.DummyContent;
 import com.example.contentproviderdemo.dummy.DummyItem;
+import com.example.dict.content.Words;
 
 /**
  * A fragment representing a single Item detail screen.
@@ -28,7 +31,7 @@ public class ItemDetailFragment extends Fragment {
     /**
      * The dummy content this fragment is presenting.
      */
-    private DummyItem mItem;
+    private com.example.contentproviderdemo.dummy.DummyItem mItem;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -45,7 +48,15 @@ public class ItemDetailFragment extends Fragment {
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-            mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+            int id = getArguments().getInt(ARG_ITEM_ID);
+            Cursor cursor = getActivity().getContentResolver().query(ContentUris.withAppendedId(Words.Word.WORD_CONTENT_URI, id), null, null, null, null);
+            if (cursor != null && cursor.getCount() > 0) {
+                cursor.moveToNext();
+                mItem = new DummyItem(cursor.getInt(0), cursor.getString(1), cursor.getString(2));
+                cursor.close();
+            } else {
+                mItem = DummyContent.ITEM_MAP.get(getArguments().getInt(ARG_ITEM_ID) % DummyContent.COUNT);
+            }
 
             Activity activity = this.getActivity();
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);

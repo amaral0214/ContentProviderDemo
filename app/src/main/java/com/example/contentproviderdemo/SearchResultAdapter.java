@@ -21,12 +21,12 @@ import java.util.List;
  */
 public class SearchResultAdapter extends BaseAdapter {
     private Context context;
-    private List<? extends DummyItem> items;
+    private List<DummyItem> items;
     private boolean isEditMode;
-    private List<String> selectItems;
+    private List<DummyItem> selectItems;
     private AlertDialog dialog;
 
-    SearchResultAdapter(Context context, List<? extends DummyItem> items, AlertDialog dialog) {
+    SearchResultAdapter(Context context, List<DummyItem> items, AlertDialog dialog) {
         this.context = context;
         this.items = items;
         this.dialog = dialog;
@@ -99,7 +99,7 @@ public class SearchResultAdapter extends BaseAdapter {
     }
 
     public void addSelectedItem(int position) {
-        selectItems.add(getItem(position).id);
+        selectItems.add(getItem(position));
     }
 
     public void removeSelectedItem(int position) {
@@ -110,7 +110,7 @@ public class SearchResultAdapter extends BaseAdapter {
         selectItems.clear();
     }
 
-    public List<String> getSelectedItems() {
+    public List<DummyItem> getSelectedItems() {
         return selectItems;
     }
 
@@ -118,7 +118,7 @@ public class SearchResultAdapter extends BaseAdapter {
         return selectItems.size();
     }
 
-    public String getId(int position) {
+    public int getId(int position) {
         return getItem(position).id;
     }
 

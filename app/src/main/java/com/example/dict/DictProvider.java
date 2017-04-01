@@ -7,6 +7,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 import com.example.dict.content.Words;
 
@@ -39,17 +40,17 @@ public class DictProvider extends ContentProvider
 		{
 			// 如果操作的数据是多项记录
 			case WORDS:
-				return "vnd.android.cursor.dir/org.crazyit.dict";
+				return "vnd.android.cursor.dir/dict";
 			// 如果操作的数据是单项记录
 			case WORD:
-				return "vnd.android.cursor.item/org.crazyit.dict";
+				return "vnd.android.cursor.item/dict";
 			default:
 				throw new IllegalArgumentException("未知Uri:" + uri);
 		}
 	}
 	// 查询数据的方法
 	@Override
-	public Cursor query(Uri uri, String[] projection, String where,
+	public Cursor query(@NonNull Uri uri, String[] projection, String where,
 						String[] whereArgs, String sortOrder)
 	{
 		SQLiteDatabase db = dbOpenHelper.getReadableDatabase();
@@ -78,7 +79,7 @@ public class DictProvider extends ContentProvider
 	}
 	// 插入数据方法
 	@Override
-	public Uri insert(Uri uri, ContentValues values)
+	public Uri insert(@NonNull Uri uri, ContentValues values)
 	{
 		// 获得数据库实例
 		SQLiteDatabase db = dbOpenHelper.getReadableDatabase();
@@ -106,7 +107,7 @@ public class DictProvider extends ContentProvider
 	}
 	// 修改数据的方法
 	@Override
-	public int update(Uri uri, ContentValues values, String where,
+	public int update(@NonNull Uri uri, ContentValues values, String where,
 					  String[] whereArgs)
 	{
 		SQLiteDatabase db = dbOpenHelper.getWritableDatabase();
@@ -139,7 +140,7 @@ public class DictProvider extends ContentProvider
 	}
 	// 删除数据的方法
 	@Override
-	public int delete(Uri uri, String where, String[] whereArgs)
+	public int delete(@NonNull Uri uri, String where, String[] whereArgs)
 	{
 		SQLiteDatabase db = dbOpenHelper.getReadableDatabase();
 		// 记录所删除的记录数
